@@ -1,15 +1,19 @@
-# Use Gradle image to build the application
-FROM gradle:8.4.0-jdk21 AS builder
-COPY --chown=gradle:gradle . /home/gradle/project
-WORKDIR /home/gradle/project
+FROM openjdk:21-jdk AS build
+RUN microdnf install findutils
+WORKDIR /app
+COPY build.gradle .
+COPY settings.gradle .
+COPY src src
 
-# Skip tests to avoid DB connection error
-RUN gradle build -x test --no-daemon
+COPY gradlew .
+COPY gradle gradle
 
-# Use a lightweight image to run the app
-FROM eclipse-temurin:21-jre
-COPY --from=builder /home/gradle/project/build/libs/*.jar app.jar
+RUN chmod +x ./gradlew
+RUN ./gradlew build -x test
 
+FROM openjdk:21-jdk
+VOLUME /tmp
+
+COPY --from=build /app/build/libs/*.jar app.jar
+ENTRYPOINT ["java","-jar","/app.jar"]
 EXPOSE 8080
-
-ENTRYPOINT ["java", "-jar", "/app.jar"]

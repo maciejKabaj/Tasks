@@ -17,14 +17,6 @@ public class TaskMapper {
         );
     }
 
-    public Task mapToNewTask(final TaskDto taskDto) {
-        return new Task(
-                null,
-                taskDto.getTitle(),
-                taskDto.getContent()
-        );
-    }
-
     public TaskDto mapToTaskDto(final Task task) {
         return new TaskDto(
                 task.getId(),
@@ -38,5 +30,4 @@ public class TaskMapper {
                 .map(this::mapToTaskDto)
                 .toList();
     }
-
 }
