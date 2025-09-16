@@ -1,14 +1,13 @@
-# Use OpenJDK as a base image
-FROM openjdk:17-jdk-slim
+# Stage 1: Build the Spring Boot app using Gradle
+FROM gradle:8.4.0-jdk21 AS builder
+COPY --chown=gradle:gradle . /home/gradle/project
+WORKDIR /home/gradle/project
+RUN gradle build --no-daemon
 
-# Set working directory
-WORKDIR /app
+# Stage 2: Run the app using a minimal Java runtime
+FROM eclipse-temurin:21-jre
+COPY --from=builder /home/gradle/project/build/libs/*.jar app.jar
 
-# Copy the jar file (Gradle puts it in build/libs)
-COPY build/libs/*.jar app.jar
-
-# Expose port (default for Spring Boot)
 EXPOSE 8080
 
-# Command to run the app
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "/app.jar"]
